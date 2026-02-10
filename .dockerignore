@@ -1,0 +1,13 @@
+data/
+*.db
+*.log
+node*.log
+.git
+.gitignore
+*.md
+start-cluster.sh
+examples/
+experiments/
+main.db
+phix.sam
+shards.json

@@ -5,5 +5,5 @@ import (
 )
 
 func Ping(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte{'p', 'o', 'n', 'g', '\n'})
+	w.Write([]byte("pong\n"))
 }

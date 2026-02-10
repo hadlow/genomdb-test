@@ -12,7 +12,7 @@ var rootCmd = &cobra.Command{
 	Long: `GenomDB is a distributed storage system for SAM and BAM files.
 
 Get started by running:
-genomdb start config.yml`,
+genomdb start configs/config-node1.yml`,
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.

@@ -1,0 +1,24 @@
+database: "data/node3/node3.db"
+
+server:
+  host: "0.0.0.0"
+  port: 8003
+
+raft:
+  node_id: "node3"
+  bind_addr: "0.0.0.0:9003"
+  data_dir: "data/node3"
+  peers:
+    - "127.0.0.1:9001"
+    - "127.0.0.1:9002"
+
+shards:
+    - id: 0
+      name: "shard0"
+      host: "0.0.0.0"
+      port: 7000
+
+    - id: 1
+      name: "shard1"
+      host: "0.0.0.0"
+      port: 7001

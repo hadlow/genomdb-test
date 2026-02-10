@@ -16,5 +16,7 @@
 # Dependency directories (remove the comment below to include it)
 
 *.db
+*.log
 
 /bin
+/data

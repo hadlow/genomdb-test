@@ -1,0 +1,22 @@
+database: "data/node1/node1.db"
+
+server:
+  host: "0.0.0.0"
+  port: 8001
+
+raft:
+  node_id: "node1"
+  bind_addr: "0.0.0.0:9001"
+  data_dir: "data/node1"
+  peers: []
+
+shards:
+    - id: 0
+      name: "shard0"
+      host: "0.0.0.0"
+      port: 7000
+
+    - id: 1
+      name: "shard1"
+      host: "0.0.0.0"
+      port: 7001

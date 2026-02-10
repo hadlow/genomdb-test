@@ -1,0 +1,79 @@
+version: '3.8'
+
+services:
+  node1:
+    build: .
+    container_name: genomdb-node1
+    command: ["./genomdb", "start", "configs/config-node1.yml"]
+    ports:
+      - "8001:8001"  # HTTP
+      - "9001:9001"  # Raft
+    volumes:
+      - node1-data:/app/data/node1
+    networks:
+      - genomdb-network
+    environment:
+      - NODE_ID=node1
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8001/ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+
+  node2:
+    build: .
+    container_name: genomdb-node2
+    command: ["./genomdb", "start", "configs/config-node2.yml"]
+    ports:
+      - "8002:8002"  # HTTP
+      - "9002:9002"  # Raft
+    volumes:
+      - node2-data:/app/data/node2
+    networks:
+      - genomdb-network
+    depends_on:
+      node1:
+        condition: service_healthy
+    environment:
+      - NODE_ID=node2
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8002/ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+
+  node3:
+    build: .
+    container_name: genomdb-node3
+    command: ["./genomdb", "start", "configs/config-node3.yml"]
+    ports:
+      - "8003:8003"  # HTTP
+      - "9003:9003"  # Raft
+    volumes:
+      - node3-data:/app/data/node3
+    networks:
+      - genomdb-network
+    depends_on:
+      node1:
+        condition: service_healthy
+      node2:
+        condition: service_healthy
+    environment:
+      - NODE_ID=node3
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8003/ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+
+volumes:
+  node1-data:
+  node2-data:
+  node3-data:
+
+networks:
+  genomdb-network:
+    driver: bridge

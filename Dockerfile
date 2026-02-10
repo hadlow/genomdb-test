@@ -1,20 +1,36 @@
-FROM ubuntu:20.04
+# Build stage
+FROM golang:1.20-alpine AS builder
 
-RUN apt-get update
+WORKDIR /build
 
-RUN apt-get -y --no-install-recommends install \
-	nginx \
-	golang
+# Copy go mod files
+COPY go.mod go.sum ./
+RUN go mod download
 
-RUN apt-get clean
+# Copy source code
+COPY . .
 
-WORKDIR /
+# Build the application
+RUN CGO_ENABLED=0 GOOS=linux go build -o genomdb .
 
-ENV GOPATH /go
-ENV PATH ${PATH}:genomdb
+# Runtime stage
+FROM alpine:latest
 
-COPY src /genomdb
+RUN apk --no-cache add ca-certificates wget
 
-COPY /server/goweb.service /lib/systemd/system
+WORKDIR /app
 
-RUN service goweb start
+# Copy binary from builder
+COPY --from=builder /build/genomdb .
+
+# Copy config files (both regular and docker variants)
+COPY configs/ ./configs/
+
+# Create data directory
+RUN mkdir -p /app/data
+
+# Expose HTTP and Raft ports
+EXPOSE 8001 8002 8003 9001 9002 9003
+
+# Default command (will be overridden by docker-compose)
+CMD ["./genomdb", "start", "configs/config-node1.yml"]

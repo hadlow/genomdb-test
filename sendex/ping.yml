@@ -1,5 +1,5 @@
 method: GET
-endpoint: http://localhost:7001/ping
+endpoint: http://localhost:8001/ping
 headers:
   - Content-Type: application/json
   - Accept: application/json

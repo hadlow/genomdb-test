@@ -22,11 +22,14 @@ var startCmd = &cobra.Command{
 			log.Fatalf("Error opening config file: %d", err)
 		}
 
-		s := server.NewServer(&config)
+		s, err := server.NewServer(&config)
+		if err != nil {
+			log.Fatalf("Error creating server: %v", err)
+		}
 
 		err = s.Serve()
 		if err != nil {
-			log.Fatalf("Error starting server: %d", err)
+			log.Fatalf("Error starting server: %v", err)
 		}
 
 		s.Close()

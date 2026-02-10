@@ -1,34 +1,42 @@
 package endpoints
 
 import (
+	"encoding/json"
 	"net/http"
 
+	"github.com/hadlow/genomdb/internal/consensus"
 	"github.com/hadlow/genomdb/internal/database"
 	"github.com/hadlow/genomdb/types"
+
+	"github.com/hashicorp/raft"
 )
 
 type ServerInterface interface {
 	GetDatabase() *database.Database
 	GetConfig() *types.Config
+	GetRaft() *raft.Raft
+	GetFSM() *consensus.FSM
 }
 
 func Get(s ServerInterface) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		r.ParseForm()
+		// Get key from query parameter
+		key := r.URL.Query().Get("key")
+		if key == "" {
+			http.Error(w, "missing key parameter", http.StatusBadRequest)
+			return
+		}
 
-		// Now you have access to s.GetDatabase(), s.GetConfig(), etc.
-		// key := r.Form.Get("key")
-		// value, err := s.GetDatabase().Get(key)
+		// Read from FSM (can read from any node, not just leader)
+		value, ok := s.GetFSM().Get(key)
+		if !ok {
+			http.NotFound(w, r)
+			return
+		}
 
-		// shard := helpers.GetShard(key, 2)
-
-		// if shard != s.GetConfig().ShardId {
-		// 	helpers.Route(w, r, shard)
-		// 	return
-		// }
-
-		// if err != nil {
-		// 	log.Fatal("Error getting value")
-		// }
+		json.NewEncoder(w).Encode(map[string]string{
+			"key":   key,
+			"value": value,
+		})
 	}
 }
