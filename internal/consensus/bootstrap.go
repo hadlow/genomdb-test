@@ -1,6 +1,17 @@
 package consensus
 
-import "github.com/hashicorp/raft"
+import (
+	"bytes"
+	"encoding/json"
+	"fmt"
+	"net"
+	"net/http"
+	"strconv"
+	"strings"
+	"time"
+
+	"github.com/hashicorp/raft"
+)
 
 func Bootstrap(r *raft.Raft, nodeID, addr string) error {
 	config := raft.Configuration{
@@ -39,7 +50,7 @@ func JoinCluster(r *raft.Raft, nodeID, addr string, peers []string) error {
 
 	// Try to add this server to the cluster
 	// This will only work if this node is the leader
-	// Otherwise, the node will need to be added via the /join endpoint
+	// Otherwise, fall back to joining via peer /join endpoints.
 	addFuture := r.AddVoter(
 		raft.ServerID(nodeID),
 		raft.ServerAddress(addr),
@@ -48,14 +59,68 @@ func JoinCluster(r *raft.Raft, nodeID, addr string, peers []string) error {
 	)
 
 	if err := addFuture.Error(); err != nil {
-		if err == raft.ErrNotLeader {
-			// Not the leader - this is expected for new nodes
-			// The node can be added manually via the /join endpoint on the leader
-			// For automatic joining, you can call the join endpoint programmatically
-			return nil
+		if err != raft.ErrNotLeader {
+			return err
 		}
-		return err
+
+		return joinViaPeers(nodeID, addr, peers)
 	}
 
 	return nil
+}
+
+func joinViaPeers(nodeID, addr string, peers []string) error {
+	payload, err := json.Marshal(map[string]string{
+		"node_id":   nodeID,
+		"node_addr": addr,
+	})
+	if err != nil {
+		return err
+	}
+
+	client := &http.Client{Timeout: 3 * time.Second}
+	attemptErrors := make([]string, 0, len(peers))
+
+	for _, peerRaftAddr := range peers {
+		peerHTTPAddr, err := raftAddrToHTTPAddr(peerRaftAddr)
+		if err != nil {
+			attemptErrors = append(attemptErrors, fmt.Sprintf("%s: %v", peerRaftAddr, err))
+			continue
+		}
+
+		joinURL := "http://" + peerHTTPAddr + "/join"
+		resp, err := client.Post(joinURL, "application/json", bytes.NewReader(payload))
+		if err != nil {
+			attemptErrors = append(attemptErrors, fmt.Sprintf("%s (%s): %v", peerRaftAddr, joinURL, err))
+			continue
+		}
+
+		resp.Body.Close()
+		if resp.StatusCode == http.StatusOK {
+			return nil
+		}
+
+		attemptErrors = append(attemptErrors, fmt.Sprintf("%s (%s): status %d", peerRaftAddr, joinURL, resp.StatusCode))
+	}
+
+	return fmt.Errorf("failed joining cluster via peers: %s", strings.Join(attemptErrors, "; "))
+}
+
+func raftAddrToHTTPAddr(raftAddr string) (string, error) {
+	host, port, err := net.SplitHostPort(raftAddr)
+	if err != nil {
+		return "", fmt.Errorf("invalid raft address %q", raftAddr)
+	}
+
+	portInt, err := strconv.Atoi(port)
+	if err != nil {
+		return "", fmt.Errorf("invalid raft port %q", port)
+	}
+
+	httpPort := portInt - 1000
+	if httpPort <= 0 {
+		return "", fmt.Errorf("invalid http port derived from raft port %d", portInt)
+	}
+
+	return net.JoinHostPort(host, strconv.Itoa(httpPort)), nil
 }

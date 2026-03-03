@@ -1,0 +1,43 @@
+services:
+  node1:
+    build:
+      context: .
+      target: dev
+    command: ["air", "-c", ".air/node1.toml"]
+    volumes:
+      - ./:/app
+      - go-mod-cache:/go/pkg/mod
+      - go-build-cache:/root/.cache/go-build
+
+  node2:
+    build:
+      context: .
+      target: dev
+    command: ["air", "-c", ".air/node2.toml"]
+    volumes:
+      - ./:/app
+      - go-mod-cache:/go/pkg/mod
+      - go-build-cache:/root/.cache/go-build
+
+  node3:
+    build:
+      context: .
+      target: dev
+    command: ["air", "-c", ".air/node3.toml"]
+    volumes:
+      - ./:/app
+      - go-mod-cache:/go/pkg/mod
+      - go-build-cache:/root/.cache/go-build
+
+  frontend:
+    depends_on:
+      node1:
+        condition: service_started
+      node2:
+        condition: service_started
+      node3:
+        condition: service_started
+
+volumes:
+  go-mod-cache:
+  go-build-cache:

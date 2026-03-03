@@ -1,5 +1,8 @@
+args:
+  - key: test
+  - value: ""
 method: POST
-endpoint: http://localhost:8001/put?key=test
+endpoint: http://localhost:8001/put?key={key}
 headers:
   - Content-Type: application/json
   - Accept: application/json
@@ -7,5 +10,5 @@ allow-headers:
   - Content-Type
 body: |
   {
-    "value": "test value"
+    "contents": "@HD\tVN:1.6\tSO:unsorted\n@SQ\tSN:chr1\tLN:1000\nread001\t0\tchr1\t1\t255\t10M\t*\t0\t0\tACTGACTGAA\tFFFFFFFFFF\nread002\t0\tchr1\t11\t255\t10M\t*\t0\t0\tTGACTGACTG\tFFFFFFFFFF\nread003\t0\tchr1\t21\t255\t10M\t*\t0\t0\tCTGACTGACT\tFFFFFFFFFF\nread004\t0\tchr1\t31\t255\t10M\t*\t0\t0\tGACTGACTGA\tFFFFFFFFFF\nread005\t0\tchr1\t41\t255\t10M\t*\t0\t0\tACTGACTGAA\tFFFFFFFFFF\nread006\t0\tchr1\t51\t255\t10M\t*\t0\t0\tTGACTGACTG\tFFFFFFFFFF\nread007\t0\tchr1\t61\t255\t10M\t*\t0\t0\tCTGACTGACT\tFFFFFFFFFF\nread008\t0\tchr1\t71\t255\t10M\t*\t0\t0\tGACTGACTGA\tFFFFFFFFFF\nread009\t0\tchr1\t81\t255\t10M\t*\t0\t0\tACTGACTGAA\tFFFFFFFFFF\nread010\t0\tchr1\t91\t255\t10M\t*\t0\t0\tTGACTGACTG\tFFFFFFFFFF\nread011\t0\tchr1\t101\t255\t10M\t*\t0\t0\tCTGACTGACT\tFFFFFFFFFF\nread012\t0\tchr1\t111\t255\t10M\t*\t0\t0\tGACTGACTGA\tFFFFFFFFFF\nread013\t0\tchr1\t121\t255\t10M\t*\t0\t0\tACTGACTGAA\tFFFFFFFFFF\nread014\t0\tchr1\t131\t255\t10M\t*\t0\t0\tTGACTGACTG\tFFFFFFFFFF\nread015\t0\tchr1\t141\t255\t10M\t*\t0\t0\tCTGACTGACT\tFFFFFFFFFF\nread016\t0\tchr1\t151\t255\t10M\t*\t0\t0\tGACTGACTGA\tFFFFFFFFFF\nread017\t0\tchr1\t161\t255\t10M\t*\t0\t0\tACTGACTGAA\tFFFFFFFFFF\nread018\t0\tchr1\t171\t255\t10M\t*\t0\t0\tTGACTGACTG\tFFFFFFFFFF\nread019\t0\tchr1\t181\t255\t10M\t*\t0\t0\tCTGACTGACT\tFFFFFFFFFF\nread020\t0\tchr1\t191\t255\t10M\t*\t0\t0\tGACTGACTGA\tFFFFFFFFFF"
   }

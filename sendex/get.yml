@@ -1,7 +1,7 @@
 args:
-  - id: 1
+  - key: test
 method: GET
-endpoint: http://127.0.0.1:8001/get?key=test
+endpoint: http://127.0.0.1:8001/get?key={key}
 headers:
   - Content-Type: application/json
   - Accept: application/json

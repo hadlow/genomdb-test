@@ -33,6 +33,15 @@ docker-build:
 docker-up:
 	@docker-compose up -d
 
+docker-dev-up:
+	@docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build
+
+docker-dev-up-d:
+	@docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build -d
+
+docker-dev-down:
+	@docker compose -f docker-compose.yml -f docker-compose.dev.yml down
+
 docker-down:
 	@docker-compose down
 

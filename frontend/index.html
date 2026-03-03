@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GenomDB Cluster Monitor</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="container">
+      <header class="header">
+        <div>
+          <h1>GenomDB Cluster Monitor</h1>
+          <p class="muted">Distributed datastore monitoring and test visibility</p>
+        </div>
+        <div class="actions">
+          <button id="refreshBtn">Refresh</button>
+          <span id="lastUpdated" class="muted">Last updated: never</span>
+        </div>
+      </header>
+
+      <section class="panel">
+        <h2>Cluster Summary</h2>
+        <div id="summary" class="summary-grid"></div>
+      </section>
+
+      <section class="panel">
+        <h2>Nodes</h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Node</th>
+                <th>Health</th>
+                <th>Role</th>
+                <th>HTTP</th>
+                <th>Raft</th>
+                <th>Leader</th>
+                <th>Peers</th>
+                <th>Key Count</th>
+              </tr>
+            </thead>
+            <tbody id="nodesTable"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Keys by Node</h2>
+        <div id="keysContainer" class="keys-grid"></div>
+      </section>
+    </main>
+
+    <script src="./app.js"></script>
+  </body>
+</html>

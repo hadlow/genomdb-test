@@ -3,12 +3,10 @@ package consensus
 import (
 	"bytes"
 	"encoding/gob"
-	"fmt"
 	"net"
 	"net/http"
 	"os"
 	"path/filepath"
-	"strconv"
 	"time"
 
 	"github.com/hashicorp/raft"
@@ -104,28 +102,17 @@ func RequireLeader(r *raft.Raft, w http.ResponseWriter, req *http.Request) bool 
 		return true
 	}
 
-	leaderAddr := string(r.Leader())
+	leaderAddr := r.Leader()
 	if leaderAddr == "" {
 		http.Error(w, "no leader elected", http.StatusServiceUnavailable)
 		return false
 	}
 
-	// raft.Leader() returns the Raft TCP address (e.g. 127.0.0.1:9001).
-	// Redirecting clients to that address will hit the Raft TCP port (not HTTP)
-	// and lead to connection resets. Convert the raft port to the HTTP port by
-	// subtracting 1000 (9001 -> 8001) which matches the docker-compose mapping
-	// used in development. If parsing fails, fall back to the raw leader address.
-	host, portStr, err := net.SplitHostPort(leaderAddr)
-	if err == nil {
-		if port, err2 := strconv.Atoi(portStr); err2 == nil {
-			httpPort := port - 1000
-			redirect := fmt.Sprintf("http://%s:%d%s", host, httpPort, req.URL.RequestURI())
-			http.Redirect(w, req, redirect, http.StatusTemporaryRedirect)
-			return false
-		}
-	}
-
-	// Fallback: redirect to the raw leader address (may not work for HTTP)
-	http.Redirect(w, req, "http://"+leaderAddr+req.URL.RequestURI(), http.StatusTemporaryRedirect)
+	http.Redirect(
+		w,
+		req,
+		"http://"+string(leaderAddr)+req.URL.Path,
+		http.StatusTemporaryRedirect,
+	)
 	return false
 }

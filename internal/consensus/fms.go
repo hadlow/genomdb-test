@@ -33,6 +33,18 @@ func (k *FSM) Get(key string) (string, bool) {
 	return v, ok
 }
 
+func (k *FSM) SnapshotStore() map[string]string {
+	k.mu.Lock()
+	defer k.mu.Unlock()
+
+	storeCopy := make(map[string]string, len(k.store))
+	for key, value := range k.store {
+		storeCopy[key] = value
+	}
+
+	return storeCopy
+}
+
 func (k *FSM) Apply(log *raft.Log) interface{} {
 	var cmd Command
 	dec := gob.NewDecoder(bytes.NewBuffer(log.Data))

@@ -51,15 +51,46 @@ The easiest way to run the cluster is using Docker Compose:
    docker-compose logs -f
    ```
 
-4. **Stop the cluster:**
+4. **Open the monitoring dashboard:**
+   - http://127.0.0.1:8080
+
+5. **Stop the cluster:**
    ```bash
    docker-compose down
    ```
 
-5. **Stop and remove volumes (clean slate):**
+6. **Stop and remove volumes (clean slate):**
    ```bash
    docker-compose down -v
    ```
+
+### Docker Hot Reload (Development)
+
+To rebuild/restart node processes automatically when `.go` files change, run:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build
+```
+
+Or with Make:
+
+```bash
+make docker-dev-up
+```
+
+Detached mode:
+
+```bash
+make docker-dev-up-d
+```
+
+This uses `air` inside each node container and bind-mounts your workspace, so saving Go files triggers recompilation and process restart.
+
+Stop hot-reload stack:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.dev.yml down
+```
 
 ## API Endpoints
 
@@ -89,6 +120,12 @@ curl -X POST http://127.0.0.1:8001/join \
   -d '{"node_id": "node2", "node_addr": "127.0.0.1:9002"}'
 ```
 **Note:** Only the leader can add nodes.
+
+### STATUS - Cluster monitoring metadata
+```bash
+curl http://127.0.0.1:8001/status
+```
+Returns node information including raft state, leader, peer list, keys, and in-memory store values.
 
 ## Configuration
 

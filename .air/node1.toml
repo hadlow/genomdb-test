@@ -1,0 +1,14 @@
+root = "."
+tmp_dir = "tmp-node1"
+
+[build]
+cmd = "go build -o ./tmp-node1/genomdb ."
+bin = "./tmp-node1/genomdb"
+full_bin = "./tmp-node1/genomdb start configs/config-node1.yml"
+include_ext = ["go", "yml", "yaml"]
+exclude_dir = ["data", "tmp", "tmp-node1", "tmp-node2", "tmp-node3", "vendor", ".git"]
+delay = 200
+stop_on_error = true
+
+[log]
+time = true

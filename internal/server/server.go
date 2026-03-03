@@ -89,10 +89,13 @@ func NewServer(config *types.Config) (s *Server, err error) {
 }
 
 func (s *Server) Serve() error {
-	http.HandleFunc("/ping", endpoints.Ping)
-	http.HandleFunc("/get", endpoints.Get(s))
-	http.HandleFunc("/put", endpoints.Put(s))
-	http.HandleFunc("/join", endpoints.Join(s))
+	http.HandleFunc("/ping", endpoints.WithCORS(endpoints.Ping))
+	http.HandleFunc("/get", endpoints.WithCORS(endpoints.Get(s)))
+	http.HandleFunc("/put", endpoints.WithCORS(endpoints.Put(s)))
+	http.HandleFunc("/join", endpoints.WithCORS(endpoints.Join(s)))
+	http.HandleFunc("/read-chunk", endpoints.WithCORS(endpoints.ReadChunk(s)))
+	http.HandleFunc("/write-chunk", endpoints.WithCORS(endpoints.WriteChunk(s)))
+	http.HandleFunc("/status", endpoints.WithCORS(endpoints.Status(s)))
 
 	addr := s.config.Server.Host + ":" + strconv.Itoa(s.config.Server.Port)
 	log.Printf("Starting server on: " + addr)
