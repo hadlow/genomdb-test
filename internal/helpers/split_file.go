@@ -24,14 +24,14 @@ CHUNK: 345,127.0.0.1:8001,127.0.0.1:8003
 123,qwe,1000,<CHUNK>,<CHUNK>
 */
 func StringifyMetadata(item types.Item) string {
-	chunks := ""
+	chunks := []string{}
 
 	for i := range item.Chunks {
 		nodes := strings.Join(item.Chunks[i].Nodes, ",")
-		chunks += item.Chunks[i].Id + "," + nodes
+		chunks = append(chunks, item.Chunks[i].Id+","+nodes)
 	}
 
-	return item.Id + "," + item.Hash + "," + strconv.Itoa(item.Size) + "," + chunks
+	return item.Id + "," + item.Hash + "," + strconv.Itoa(item.Size) + "," + strings.Join(chunks, ",")
 }
 
 func ChunkData(contents string, chunkLines int) []string {

@@ -7,5 +7,6 @@ server:
 raft:
   node_id: "node1"
   bind_addr: "0.0.0.0"
+  advertise_addr: "node1"
   data_dir: "data/node1"
   peers: []

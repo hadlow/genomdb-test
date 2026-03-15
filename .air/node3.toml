@@ -4,7 +4,7 @@ tmp_dir = "tmp-node3"
 [build]
 cmd = "go build -o ./tmp-node3/genomdb ."
 bin = "./tmp-node3/genomdb"
-full_bin = "./tmp-node3/genomdb start configs/config-node3.yml"
+full_bin = "./tmp-node3/genomdb start configs/config-node3-docker.yml"
 include_ext = ["go", "yml", "yaml"]
 exclude_dir = ["data", "tmp", "tmp-node1", "tmp-node2", "tmp-node3", "vendor", ".git"]
 delay = 200

@@ -11,6 +11,7 @@ import (
 	"github.com/hadlow/genomdb/internal/consensus"
 	"github.com/hadlow/genomdb/internal/database"
 	"github.com/hadlow/genomdb/internal/endpoints"
+	"github.com/hadlow/genomdb/internal/helpers"
 	"github.com/hadlow/genomdb/types"
 )
 
@@ -47,22 +48,35 @@ func NewServer(config *types.Config) (s *Server, err error) {
 
 	fsm := consensus.NewFSM()
 
-	// Determine advertise address: prefer explicit config, else derive
-	advertiseAddr := config.Raft.AdvertiseAddr
-	if advertiseAddr == "" {
-		// default to bind addr
-		advertiseAddr = config.Raft.BindAddr
-		// if bind host is 0.0.0.0, try to pick a non-loopback interface IP
-		if host, port, err := net.SplitHostPort(config.Raft.BindAddr); err == nil && (host == "0.0.0.0" || host == "") {
-			if ip := pickOutboundIP(); ip != "" {
-				advertiseAddr = ip + ":" + port
-			}
+	raftPort := config.Server.Port + helpers.RaftPortOffset
+
+	bindHost := hostFromAddress(config.Raft.BindAddr)
+	if bindHost == "" {
+		bindHost = config.Server.Host
+	}
+	if bindHost == "" {
+		bindHost = "0.0.0.0"
+	}
+
+	bindAddr := net.JoinHostPort(bindHost, strconv.Itoa(raftPort))
+
+	advertiseHost := hostFromAddress(config.Raft.AdvertiseAddr)
+	if advertiseHost == "" {
+		if bindHost == "0.0.0.0" || bindHost == "" {
+			advertiseHost = pickOutboundIP()
+		} else {
+			advertiseHost = bindHost
 		}
 	}
+	if advertiseHost == "" {
+		advertiseHost = bindHost
+	}
+
+	advertiseAddr := net.JoinHostPort(advertiseHost, strconv.Itoa(raftPort))
 
 	raftNode, err := consensus.NewRaftNode(
 		config.Raft.DataDir,
-		config.Raft.BindAddr,
+		bindAddr,
 		advertiseAddr,
 		config.Raft.NodeID,
 		fsm,
@@ -75,12 +89,12 @@ func NewServer(config *types.Config) (s *Server, err error) {
 	// Bootstrap or join cluster
 	if len(config.Raft.Peers) == 0 {
 		// First node - bootstrap the cluster
-		if err := consensus.Bootstrap(raftNode, config.Raft.NodeID, config.Raft.BindAddr); err != nil {
+		if err := consensus.Bootstrap(raftNode, config.Raft.NodeID, advertiseAddr); err != nil {
 			log.Printf("Bootstrap failed (cluster may already exist): %v", err)
 		}
 	} else {
 		// Join existing cluster
-		if err := consensus.JoinCluster(raftNode, config.Raft.NodeID, config.Raft.BindAddr, config.Raft.Peers); err != nil {
+		if err := consensus.JoinCluster(raftNode, config.Raft.NodeID, advertiseAddr, config.Raft.Peers); err != nil {
 			log.Printf("Join cluster failed: %v", err)
 		}
 	}
@@ -99,7 +113,7 @@ func (s *Server) Serve() error {
 
 	addr := s.config.Server.Host + ":" + strconv.Itoa(s.config.Server.Port)
 	log.Printf("Starting server on: " + addr)
-	log.Printf("Raft node ID: %s, Bind address: %s\n", s.config.Raft.NodeID, s.config.Raft.BindAddr)
+	log.Printf("Raft node ID: %s\n", s.config.Raft.NodeID)
 
 	err := http.ListenAndServe(addr, nil)
 
@@ -152,4 +166,17 @@ func pickOutboundIP() string {
 		}
 	}
 	return ""
+}
+
+func hostFromAddress(addr string) string {
+	if addr == "" {
+		return ""
+	}
+
+	host, _, err := net.SplitHostPort(addr)
+	if err == nil {
+		return host
+	}
+
+	return addr
 }

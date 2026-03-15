@@ -3,12 +3,16 @@ package consensus
 import (
 	"bytes"
 	"encoding/gob"
+	"fmt"
+	"io"
 	"net"
 	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
 	"time"
 
+	"github.com/hadlow/genomdb/internal/helpers"
 	"github.com/hashicorp/raft"
 	raftboltdb "github.com/hashicorp/raft-boltdb"
 )
@@ -108,10 +112,50 @@ func RequireLeader(r *raft.Raft, w http.ResponseWriter, req *http.Request) bool 
 		return false
 	}
 
+	leaderHTTPAddr, err := helpers.RaftToHttpAddress(string(leaderAddr))
+	if err == nil {
+		leaderURL := "http://" + leaderHTTPAddr + req.URL.RequestURI()
+		proxyReq, err := http.NewRequestWithContext(req.Context(), req.Method, leaderURL, req.Body)
+		if err == nil {
+			proxyReq.Header = req.Header.Clone()
+
+			resp, err := http.DefaultClient.Do(proxyReq)
+			if err == nil {
+				defer resp.Body.Close()
+				for key, values := range resp.Header {
+					for _, value := range values {
+						w.Header().Add(key, value)
+					}
+				}
+				w.WriteHeader(resp.StatusCode)
+				_, _ = io.Copy(w, resp.Body)
+				return false
+			}
+		}
+	}
+
+	leaderHost, leaderPort, err := net.SplitHostPort(string(leaderAddr))
+	if err != nil {
+		http.Error(w, "invalid leader address", http.StatusServiceUnavailable)
+		return false
+	}
+
+	leaderPortInt, err := strconv.Atoi(leaderPort)
+	if err != nil {
+		http.Error(w, "invalid leader port", http.StatusServiceUnavailable)
+		return false
+	}
+
+	leaderHTTPPort := leaderPortInt - helpers.RaftPortOffset
+	if leaderHTTPPort <= 0 {
+		http.Error(w, "invalid leader http port", http.StatusServiceUnavailable)
+		return false
+	}
+
 	http.Redirect(
 		w,
 		req,
-		"http://"+string(leaderAddr)+req.URL.Path,
+		fmt.Sprintf("http://%s:%d%s", leaderHost, leaderHTTPPort, req.URL.RequestURI()),
 		http.StatusTemporaryRedirect,
 	)
 	return false

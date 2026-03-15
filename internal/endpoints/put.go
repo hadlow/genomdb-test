@@ -35,23 +35,11 @@ func getNodeFromChunk(nodes []types.RaftNodeAddress, hash uint32) types.RaftNode
 	return nodes[index]
 }
 
-func raftPortToHTTPPort(port string) (string, error) {
-	portInt, err := strconv.Atoi(port)
-	if err != nil {
-		return "", fmt.Errorf("invalid node port: %s", port)
-	}
-
-	httpPortInt := portInt - 1000
-	if httpPortInt <= 0 {
-		return "", fmt.Errorf("invalid converted http port")
-	}
-
-	return strconv.Itoa(httpPortInt), nil
-}
-
 func postChunk(url string, chunk string, hash uint32) (*http.Response, error) {
 	body := strings.NewReader(chunk)
 	contentType := "text/plain"
+
+	fmt.Printf("Posting chunk with hash %d to node at %s\n", hash, url)
 
 	response, err := http.Post(url+"/write-chunk?hash="+strconv.FormatUint(uint64(hash), 10), contentType, body)
 	if err != nil {
@@ -96,7 +84,6 @@ func Put(s ServerInterface) http.HandlerFunc {
 
 		// Get network nodes
 		nodes, err := helpers.GetRaftNodeAddresses(raft)
-		log.Println("=== Raft nodes in cluster:", nodes)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -111,14 +98,13 @@ func Put(s ServerInterface) http.HandlerFunc {
 			hash := getChunkHash(chunks[i])
 			node := getNodeFromChunk(nodes, hash)
 
-			httpPort, err := raftPortToHTTPPort(node.Port)
+			httpAddr, err := helpers.RaftToHttpAddress(node.RaftAddress)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
 
-			address := node.IP + ":" + httpPort
-			_, err = postChunk("http://"+address, chunks[i], hash)
+			_, err = postChunk("http://"+httpAddr, chunks[i], hash)
 
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -126,8 +112,8 @@ func Put(s ServerInterface) http.HandlerFunc {
 			}
 
 			chunkData = append(chunkData, types.Chunk{
-				Id:    "c" + strconv.FormatUint(uint64(hash), 10),
-				Nodes: []string{address},
+				Id:    strconv.FormatUint(uint64(hash), 10),
+				Nodes: []string{httpAddr},
 			})
 		}
 

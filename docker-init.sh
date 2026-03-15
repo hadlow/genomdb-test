@@ -27,7 +27,7 @@ sleep 2
 echo "Adding node2 to cluster..."
 RESPONSE=$(curl -s -w "\n%{http_code}" -X POST http://127.0.0.1:8001/join \
   -H "Content-Type: application/json" \
-  -d '{"node_id": "node2", "node_addr": "node2:9002"}')
+  -d '{"node_id": "node2", "node_addr": "node2:9026"}')
 
 HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
 if [ "$HTTP_CODE" = "200" ] || [ "$HTTP_CODE" = "307" ]; then
@@ -41,7 +41,7 @@ sleep 2
 echo "Adding node3 to cluster..."
 RESPONSE=$(curl -s -w "\n%{http_code}" -X POST http://127.0.0.1:8001/join \
   -H "Content-Type: application/json" \
-  -d '{"node_id": "node3", "node_addr": "node3:9003"}')
+  -d '{"node_id": "node3", "node_addr": "node3:9027"}')
 
 HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
 if [ "$HTTP_CODE" = "200" ] || [ "$HTTP_CODE" = "307" ]; then

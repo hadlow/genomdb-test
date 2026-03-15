@@ -38,6 +38,7 @@ docker-dev-up:
 
 docker-dev-up-d:
 	@docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build -d
+	@./docker-init.sh
 
 docker-dev-down:
 	@docker compose -f docker-compose.yml -f docker-compose.dev.yml down
@@ -51,6 +52,11 @@ docker-logs:
 docker-clean:
 	@docker-compose down -v
 	@docker system prune -f
+
+docker-dev-reset:
+	@docker compose -f docker-compose.yml -f docker-compose.dev.yml down -v
+	@docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build -d
+	@./docker-init.sh
 
 docker-init:
 	@./docker-init.sh

@@ -38,12 +38,12 @@ The easiest way to run the cluster is using Docker Compose:
    # Add node2
    curl -X POST http://127.0.0.1:8001/join \
      -H "Content-Type: application/json" \
-     -d '{"node_id": "node2", "node_addr": "node2:9002"}'
+       -d '{"node_id": "node2", "node_addr": "node2:9026"}'
    
    # Add node3
    curl -X POST http://127.0.0.1:8001/join \
      -H "Content-Type: application/json" \
-     -d '{"node_id": "node3", "node_addr": "node3:9003"}'
+       -d '{"node_id": "node3", "node_addr": "node3:9027"}'
    ```
 
 3. **View logs:**
@@ -84,6 +84,14 @@ Detached mode:
 make docker-dev-up-d
 ```
 
+`make docker-dev-up-d` now starts containers and runs cluster init (`/join` for node2/node3).
+
+If Raft gets stuck after address/config changes (for example heartbeats to `127.0.0.1:9025` inside containers), reset dev volumes and re-init:
+
+```bash
+make docker-dev-reset
+```
+
 This uses `air` inside each node container and bind-mounts your workspace, so saving Go files triggers recompilation and process restart.
 
 Stop hot-reload stack:
@@ -117,7 +125,7 @@ curl http://127.0.0.1:8001/ping
 ```bash
 curl -X POST http://127.0.0.1:8001/join \
   -H "Content-Type: application/json" \
-  -d '{"node_id": "node2", "node_addr": "127.0.0.1:9002"}'
+   -d '{"node_id": "node2", "node_addr": "127.0.0.1:9026"}'
 ```
 **Note:** Only the leader can add nodes.
 
@@ -135,7 +143,8 @@ Each node requires a configuration file with:
 - `server.host`: HTTP server host
 - `server.port`: HTTP server port
 - `raft.node_id`: Unique node identifier
-- `raft.bind_addr`: Raft TCP address (for node-to-node communication)
+- `raft.bind_addr`: Raft bind host (Raft port is derived as `server.port + 1024`)
+- `raft.advertise_addr`: Optional Raft advertise host (port also derived as `server.port + 1024`)
 - `raft.data_dir`: Directory for Raft logs and snapshots
 - `raft.peers`: List of peer Raft addresses (empty for first node)
 

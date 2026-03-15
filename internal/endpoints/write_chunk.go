@@ -3,22 +3,12 @@ package endpoints
 import (
 	"fmt"
 	"io"
-	"log"
 	"net/http"
-
-	"github.com/hadlow/genomdb/internal/consensus"
 )
 
 // Writes a file chunk by key
 func WriteChunk(s ServerInterface) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		fmt.Println("=== WRITING CHUNK")
-		log.Println("=== WRITING CHUNK logger")
-		// Writes must go through the leader
-		if !consensus.RequireLeader(s.GetRaft(), w, r) {
-			return
-		}
-
 		// Get hash from query parameter
 		hash := r.URL.Query().Get("hash")
 		if hash == "" {

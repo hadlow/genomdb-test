@@ -4,10 +4,10 @@ services:
   node1:
     build: .
     container_name: genomdb-node1
-    command: ["./genomdb", "start", "configs/config-node1.yml"]
+    command: ["./genomdb", "start", "configs/config-node1-docker.yml"]
     ports:
       - "8001:8001"  # HTTP
-      - "9001:9001"  # Raft
+      - "9025:9025"  # Raft
     volumes:
       - node1-data:/app/data/node1
     networks:
@@ -24,10 +24,10 @@ services:
   node2:
     build: .
     container_name: genomdb-node2
-    command: ["./genomdb", "start", "configs/config-node2.yml"]
+    command: ["./genomdb", "start", "configs/config-node2-docker.yml"]
     ports:
       - "8002:8002"  # HTTP
-      - "9002:9002"  # Raft
+      - "9026:9026"  # Raft
     volumes:
       - node2-data:/app/data/node2
     networks:
@@ -47,10 +47,10 @@ services:
   node3:
     build: .
     container_name: genomdb-node3
-    command: ["./genomdb", "start", "configs/config-node3.yml"]
+    command: ["./genomdb", "start", "configs/config-node3-docker.yml"]
     ports:
       - "8003:8003"  # HTTP
-      - "9003:9003"  # Raft
+      - "9027:9027"  # Raft
     volumes:
       - node3-data:/app/data/node3
     networks:

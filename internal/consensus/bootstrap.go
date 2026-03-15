@@ -4,12 +4,11 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"net"
 	"net/http"
-	"strconv"
 	"strings"
 	"time"
 
+	"github.com/hadlow/genomdb/internal/helpers"
 	"github.com/hashicorp/raft"
 )
 
@@ -82,7 +81,7 @@ func joinViaPeers(nodeID, addr string, peers []string) error {
 	attemptErrors := make([]string, 0, len(peers))
 
 	for _, peerRaftAddr := range peers {
-		peerHTTPAddr, err := raftAddrToHTTPAddr(peerRaftAddr)
+		peerHTTPAddr, err := helpers.RaftToHttpAddress(peerRaftAddr)
 		if err != nil {
 			attemptErrors = append(attemptErrors, fmt.Sprintf("%s: %v", peerRaftAddr, err))
 			continue
@@ -104,23 +103,4 @@ func joinViaPeers(nodeID, addr string, peers []string) error {
 	}
 
 	return fmt.Errorf("failed joining cluster via peers: %s", strings.Join(attemptErrors, "; "))
-}
-
-func raftAddrToHTTPAddr(raftAddr string) (string, error) {
-	host, port, err := net.SplitHostPort(raftAddr)
-	if err != nil {
-		return "", fmt.Errorf("invalid raft address %q", raftAddr)
-	}
-
-	portInt, err := strconv.Atoi(port)
-	if err != nil {
-		return "", fmt.Errorf("invalid raft port %q", port)
-	}
-
-	httpPort := portInt - 1000
-	if httpPort <= 0 {
-		return "", fmt.Errorf("invalid http port derived from raft port %d", portInt)
-	}
-
-	return net.JoinHostPort(host, strconv.Itoa(httpPort)), nil
 }
